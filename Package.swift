@@ -1,4 +1,4 @@
-// swift-tools-version:4.0
+// swift-tools-version:5.1
 
 import PackageDescription
 
@@ -15,7 +15,7 @@ let package = Package(
             path: "SwiftMQTT/SwiftMQTT/"
         ),
         .testTarget(
-            name: "SwiftMQTTTests", 
+            name: "SwiftMQTTTests",
             dependencies: ["SwiftMQTT"],
             path: "SwiftMQTT/SwiftMQTTTests/"
         ),
