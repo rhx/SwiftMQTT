@@ -51,8 +51,8 @@ class MQTTSessionStream: NSObject {
             self.currentRunLoop = RunLoop.current
             self.currentThread = Thread.current
 
-            inputStream?.schedule(in: self.currentRunLoop!, forMode: .defaultRunLoopMode)
-            outputStream?.schedule(in: self.currentRunLoop!, forMode: .defaultRunLoopMode)
+            inputStream?.schedule(in: self.currentRunLoop!, forMode: .default)
+            outputStream?.schedule(in: self.currentRunLoop!, forMode: .default)
 
             inputStream?.open()
             outputStream?.open()
@@ -68,7 +68,7 @@ class MQTTSessionStream: NSObject {
             }
             var isCancelled = self.currentThread?.isCancelled ?? true
 
-            while !isCancelled && (self.currentRunLoop != nil && self.currentRunLoop!.run(mode: .defaultRunLoopMode, before: Date.distantFuture)) {
+            while !isCancelled && (self.currentRunLoop != nil && self.currentRunLoop!.run(mode: .default, before: Date.distantFuture)) {
                 isCancelled = self.currentThread?.isCancelled ?? true
             }
         }
@@ -78,9 +78,9 @@ class MQTTSessionStream: NSObject {
         delegate = nil
         guard let currentRunLoop = currentRunLoop else { return }
         inputStream?.close()
-        inputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode)
+        inputStream?.remove(from: currentRunLoop, forMode: .default)
         outputStream?.close()
-        outputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode)
+        outputStream?.remove(from: currentRunLoop, forMode: .default)
     }
 
     var write: StreamWriter? {

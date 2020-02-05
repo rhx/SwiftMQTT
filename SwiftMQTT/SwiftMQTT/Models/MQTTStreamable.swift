@@ -47,6 +47,7 @@ extension Data: MQTTStreamable {
     mutating func read(from read: StreamReader) -> Bool {
         let totalLength = self.count
         var readLength: Int = 0
+
         self.withUnsafeBytes { (buffer: UnsafePointer<UInt8>) in
             repeat {
                 let b = UnsafeMutablePointer(mutating: buffer) + readLength
