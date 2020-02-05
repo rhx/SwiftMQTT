@@ -119,6 +119,7 @@ open class MQTTSession {
     }
     
     private func cleanupDisconnection(_ error: MQTTSessionError) {
+        stream?.stopThread()
         stream = nil
         keepAliveTimer?.cancel()
         delegateQueue.async { [weak self] in

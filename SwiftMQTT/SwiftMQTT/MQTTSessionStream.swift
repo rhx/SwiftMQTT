@@ -15,8 +15,9 @@ protocol MQTTSessionStreamDelegate: class {
 }
 
 class MQTTSessionStream: NSObject {
-    
+
     private var currentRunLoop: RunLoop?
+    private var currentThread: Thread?
     private let inputStream: InputStream?
     private let outputStream: OutputStream?
     private var sessionQueue: DispatchQueue
@@ -24,12 +25,12 @@ class MQTTSessionStream: NSObject {
 
     private var inputReady = false
     private var outputReady = false
-    
+
     init(host: String, port: UInt16, ssl: Bool, timeout: TimeInterval, delegate: MQTTSessionStreamDelegate?) {
         var inputStream: InputStream?
         var outputStream: OutputStream?
         Stream.getStreamsToHost(withName: host, port: Int(port), inputStream: &inputStream, outputStream: &outputStream)
-        
+
         let queueLabel = host.components(separatedBy: ".").reversed().joined(separator: ".") + ".stream\(port)"
         self.sessionQueue = DispatchQueue(label: queueLabel, qos: .background, target: nil)
         self.delegate = delegate
@@ -37,7 +38,7 @@ class MQTTSessionStream: NSObject {
         self.outputStream = outputStream
 
         super.init()
-        
+
         inputStream?.delegate = self
         outputStream?.delegate = self
 
@@ -48,6 +49,8 @@ class MQTTSessionStream: NSObject {
             }
 
             self.currentRunLoop = RunLoop.current
+            self.currentThread = Thread.current
+
             inputStream?.schedule(in: self.currentRunLoop!, forMode: .defaultRunLoopMode)
             outputStream?.schedule(in: self.currentRunLoop!, forMode: .defaultRunLoopMode)
 
@@ -63,10 +66,14 @@ class MQTTSessionStream: NSObject {
                     self.connectTimeout()
                 }
             }
-            self.currentRunLoop!.run()
+            var isCancelled = self.currentThread?.isCancelled ?? true
+
+            while !isCancelled && (self.currentRunLoop != nil && self.currentRunLoop!.run(mode: .defaultRunLoopMode, before: Date.distantFuture)) {
+                isCancelled = self.currentThread?.isCancelled ?? true
+            }
         }
     }
-    
+
     deinit {
         delegate = nil
         guard let currentRunLoop = currentRunLoop else { return }
@@ -75,7 +82,7 @@ class MQTTSessionStream: NSObject {
         outputStream?.close()
         outputStream?.remove(from: currentRunLoop, forMode: .defaultRunLoopMode)
     }
-    
+
     var write: StreamWriter? {
         if let outputStream = outputStream, outputReady {
             return outputStream.write
@@ -87,6 +94,10 @@ class MQTTSessionStream: NSObject {
         if inputReady == false || outputReady == false {
             delegate?.mqttReady(false, in: self)
         }
+    }
+
+    func stopThread() {
+        currentThread?.cancel()
     }
 }
 
