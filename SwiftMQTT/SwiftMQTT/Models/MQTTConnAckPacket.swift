@@ -14,8 +14,8 @@ class MQTTConnAckPacket: MQTTPacket {
     let response: MQTTConnAckResponse
     
     init(header: MQTTPacketFixedHeader, networkData: Data) {
-        sessionPresent = (networkData[0] & 0x01) == 0x01
-        response = MQTTConnAckResponse(rawValue: networkData[1])!
+        sessionPresent = networkData.isEmpty ? false : (networkData[0] & 0x01) == 0x01
+        response = MQTTConnAckResponse(rawValue: networkData.isEmpty ? 1 : networkData[1])!
         
         super.init(header: header)
     }
